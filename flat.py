@@ -42,11 +42,11 @@ def createBuilding(x, y, size, pixel):
     # Create a cube
     bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))    
 
-    # Create a material
+    # Use a material
     activeObject = bpy.context.active_object
-    mat = bpy.data.materials.new(name="MaterialName")
+    mat = bpy.data.materials.get("Building")
     activeObject.data.materials.append(mat)
-    bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
+    #bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
 
     # Modifier le cube
     bpy.ops.object.mode_set(mode='EDIT')
@@ -56,67 +56,101 @@ def createBuilding(x, y, size, pixel):
     # Define the modifiers
     scale_Z = 1.6
     padding = 0.1
-    amount = 10
-    height_scaler = 3
+    height_scaler = 7
     h = size*(2-scale_Z)
-    
-    # Rotate the cube
-    r = radians(random.randrange(3)*90)
-    activeObject.rotation_euler = (0,0, r)
     
     # Extrude TOP
     bpy.ops.mesh.select_all(action="DESELECT")
     bm.faces[5].select = True
     r = random.uniform(size/height_scaler, size*height_scaler)
     bpy.ops.transform.translate(value = (0, 0, r))
-    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, padding)})
+    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, padding)})    
     
-    # Move one edge
+    # Move one edge    
     bm.edges.ensure_lookup_table()
     bpy.ops.mesh.select_all(action="DESELECT")
-    bm.edges[12].select = True
-    bpy.ops.transform.translate(value = (0.1, 0, 0))
-    
+    bm.edges[len(bm.edges)-5-(int(bool(random.getrandbits(1)))*2)].select = True
+    r = (int(bool(random.getrandbits(1)))*2)-1
+    bpy.ops.transform.translate(value = (0, 0.1*r, 0))
+
     # Extrude TOP
     bpy.ops.mesh.select_all(action="DESELECT")
     bm.faces.ensure_lookup_table()
-    bm.faces[6].select = True
+    bm.faces[len(bm.faces)-4].select = True
+    r = random.uniform(size/height_scaler, size*height_scaler)
+    r2 = random.uniform(padding/height_scaler, padding*height_scaler)
+    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r)})
+    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r2)})    
+
+    for i in range(4):
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1.05, 1.05, 1.05))
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1/1.05, 1/1.05, 1/1.05))
+
+    # Move one edge
+    bm.edges.ensure_lookup_table()
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.edges[len(bm.edges)-5-(int(bool(random.getrandbits(1)))*2)].select = True
+    r = (int(bool(random.getrandbits(1)))*2)-1
+    bpy.ops.transform.translate(value = (0, 0.1*r, 0)) 
+
+    # Extrude TOP
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.faces.ensure_lookup_table()
+    bm.faces[len(bm.faces)-4].select = True
     r = random.uniform(size/height_scaler, size*height_scaler)
     r2 = random.uniform(padding/height_scaler, padding*height_scaler)
     bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r)})
     bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r2)})
-    
-    # Move one edge
-    bm.edges.ensure_lookup_table()
-    bpy.ops.mesh.select_all(action="DESELECT")
-    bm.edges[30].select = True
-    bpy.ops.transform.translate(value = (-0.1, 0, 0))    
-    
-    # Extrude TOP
-    bpy.ops.mesh.select_all(action="DESELECT")
-    bm.faces.ensure_lookup_table()
-    bm.faces[14].select = True
-    r = random.uniform(size/height_scaler, size*height_scaler)
-    r2 = random.uniform(padding/height_scaler, padding*height_scaler)
-    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r)})
-    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r2)})
+
+    top_face_index = save_selection(bm)
+
+    if bool(random.getrandbits(1)):
+        bm.faces.ensure_lookup_table()
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bm.faces[len(bm.faces)-5].select = True
+        location = bm.faces[len(bm.faces)-5].calc_center_median()
+        print(location)
+        bpy.ops.mesh.extrude_region()
+        bpy.ops.transform.resize(value=(0.8, 0.8, 0.8))
+        if location[0] >= -0.1 and location[0] <= 0.1 and location[1] > 0:
+            bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, -padding, 0)})
+        elif location[0] >= -0.1 and location[0] <= 0.1 and location[1] < 0:
+            bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, padding, 0)})
+        elif location[0] > 0 and location[1] >= -0.1 and location[1] <= 0.1:
+            bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (-padding, 0, 0)})
+        elif location[0] < 0 and location[1] >= -0.1 and location[1] <= 0.1:
+            bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (padding, 0, 0)})
+        bpy.ops.mesh.bevel(offset=padding)
     
     # Reduce TOP
+    use_selection(bm, top_face_index)
     bpy.ops.transform.resize(value=(0.85, 0.85, 0.85))
-    
+
     # Extrude TOP
     r = random.uniform(size/height_scaler, size*height_scaler)
-    r2 = random.uniform(padding/height_scaler, padding*height_scaler)
     bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r)})
-    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r2)})
     
+
+    # TOP FLOOR
+    for i in range(3):
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1.05, 1.05, 1.05))
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1/1.05, 1/1.05, 1/1.05))
+    
+    r2 = random.uniform(padding/height_scaler, padding*height_scaler)
+    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, r2)})
+    top_face_index = save_selection(bm)[0]
+
     # Resize TOP
     r = random.uniform(0.7, 0.9)
     bpy.ops.transform.resize(value=(r, r, r))
     
     # Get TOP location
     bm.faces.ensure_lookup_table()
-    top_face = bm.faces[30]
+    top_face = bm.faces[top_face_index]
     face_location = top_face.calc_center_median()
     face_location = activeObject.matrix_world * face_location
     top_z = face_location[2]
@@ -125,19 +159,52 @@ def createBuilding(x, y, size, pixel):
     bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))
     bpy.ops.transform.resize(value=(padding/3, padding/3, 1))
     bpy.ops.transform.translate(value = (0, 0, top_z+padding/6))   
-    selected_faces = save_selection(bm)    
-    bpy.ops.mesh.duplicate_move(MESH_OT_duplicate={"mode": 1}, TRANSFORM_OT_translate={"value": (padding*2, 0, 0)})
-    bpy.ops.transform.translate(value = (0, 0, random.uniform(-0.5, 0.5)))
+    selected_faces = save_selection(bm)
+
+    # Copy it
+    for i in range(random.randint(1, 5)):
+        bpy.ops.mesh.duplicate_move(MESH_OT_duplicate={"mode": 1}, 
+                                    TRANSFORM_OT_translate={"value": (padding*random.uniform(-1.5, 1.5), padding*random.uniform(-1.5, 1.5), 0)})
+        bpy.ops.transform.translate(value = (0, 0, random.uniform(-0.2, 0.2)))
     
-    use_selection(bm, selected_faces)
-    bpy.ops.mesh.duplicate_move(MESH_OT_duplicate={"mode": 1}, TRANSFORM_OT_translate={"value": (-padding*2, padding, 0)})
-    bpy.ops.transform.translate(value = (0, 0, random.uniform(-0.5, 0.5)))   
+    # Rotate the cube
+    bpy.ops.mesh.select_all(action="SELECT")
+    r = radians(random.randrange(3)*90)
+    activeObject.rotation_euler = (0,0, r)
+
+    last_index = len(bm.faces)-1
+    print(last_index)
+
+    # Add medium cube
+    bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))
+    bpy.ops.transform.resize(value=(1, 0.7, random.uniform(0.5, 3)))
+    bm.faces.ensure_lookup_table()
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.faces[last_index+6].select = True
+    for i in range(2):
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1.05, 1.05, 1.05))
+        bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, 0.05)})
+        bpy.ops.transform.resize(value=(1/1.05, 1/1.05, 1/1.05))
+    bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value": (0, 0, size)})
+    for f in bm.faces:
+        if f.index > last_index:
+            f.select = True    
+    bpy.ops.transform.translate(value = (0.1, 0, random.uniform(1, top_z-1)))
+
+
+    # Bevel first and last mesh
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.faces.ensure_lookup_table()
+    bm.faces[last_index+5].select = True
+    bm.faces[len(bm.faces)-4].select =True
+    bpy.ops.mesh.bevel(offset=0.1)
     
-    use_selection(bm, selected_faces)
-    bpy.ops.mesh.duplicate_move(MESH_OT_duplicate={"mode": 1}, TRANSFORM_OT_translate={"value": (-padding*2, -padding*2, 0)})
-    bpy.ops.transform.translate(value = (0, 0, random.uniform(-0.5, 0.5)))
-    
-    
+    # Rotate once or not
+    r = radians(random.randrange(3)*90)
+    activeObject.rotation_euler = (0,0, r)
+
+
     
     
     

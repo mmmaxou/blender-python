@@ -13,8 +13,11 @@ if blend_dir not in sys.path:
 importlib.reload(flat)
 
 dir_path = os.path.dirname(os.path.realpath(__file__)).replace("Scripting.blend", "")
-# file=open(dir_path + "map-simple.ppm", "r")
-file=open(dir_path + "map.ppm", "r")
+USE_COMPLEX = False
+if USE_COMPLEX:
+    file=open(dir_path + "map.ppm", "r")
+else:
+    file=open(dir_path + "map-simple.ppm", "r")
 
 # Read ppm
 lines=file.readlines()
@@ -57,8 +60,6 @@ def createSimpleCube(x, y, i, j, size, pixel):
     bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
 
 # Clear Scene
-
-
 print("===SCRIPT STARTING===")
 if bpy.context.mode != 'OBJECT':
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -66,8 +67,8 @@ if bpy.context.mode != 'OBJECT':
 if bpy.context.scene.tool_settings.mesh_select_mode != (False, False, True):
     bpy.context.scene.tool_settings.mesh_select_mode = (False, False, True)
 # Delete all material
-for m in bpy.data.materials:
-    bpy.data.materials.remove(m)
+# for m in bpy.data.materials:
+#    bpy.data.materials.remove(m)
 ut.delete_all()
 
 

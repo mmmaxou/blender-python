@@ -30,5 +30,10 @@ def showEdgeSelected():
     # and recalculate n-gon tessellation.
     bmesh.update_edit_mesh(me, True)
     
-showFaceSelected()
+def delete_materials():
+    for m in bpy.data.materials:
+        bpy.data.materials.remove(m)
+    
+# showFaceSelected()
 # showEdgeSelected()
+delete_materials()
