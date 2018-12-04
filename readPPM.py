@@ -3,7 +3,6 @@ import os
 import ut
 import sys
 import flat
-import "building-lollier"
 import importlib
 from time import sleep
 
@@ -12,10 +11,14 @@ if blend_dir not in sys.path:
    sys.path.append(blend_dir)
 
 importlib.reload(flat)
-importlib.reload(building-lollier)
+importlib.reload(buildingLollier)
 
 dir_path = os.path.dirname(os.path.realpath(__file__)).replace("Scripting.blend", "")
-file=open(dir_path + "map-simple.ppm", "r")
+USE_COMPLEX = False
+if USE_COMPLEX:
+    file=open(dir_path + "map.ppm", "r")
+else:
+    file=open(dir_path + "map-simple.ppm", "r")
 
 # Read ppm
 lines=file.readlines()
@@ -58,11 +61,15 @@ def createSimpleCube(x, y, i, j, size, pixel):
     bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
 
 # Clear Scene
+print("===SCRIPT STARTING===")
 if bpy.context.mode != 'OBJECT':
     bpy.ops.object.mode_set(mode='OBJECT')
 # print(tuple(bpy.context.scene.tool_settings.mesh_select_mode))
 if bpy.context.scene.tool_settings.mesh_select_mode != (False, False, True):
     bpy.context.scene.tool_settings.mesh_select_mode = (False, False, True)
+# Delete all material
+# for m in bpy.data.materials:
+#    bpy.data.materials.remove(m)
 ut.delete_all()
 
 
@@ -84,9 +91,8 @@ for i in range(0, width):
                 createSimpleCube(x, y, i, j, size, pixels[i][j])
 
             if isRed(pixels[i][j]):
-                #flat.createFlat(x, y, size, pixels[i][j])
-                building-lollier.createBuilding(x,y,pixels[i][j])
-            sleep(0.1)
+                # flat.createFlat(x, y, size, pixels[i][j])
+                buildingLollier.createBuilding(x, y, size, pixels[i][j])
 
         if isBlack(pixels[i][j]): 
             print("> Black")
