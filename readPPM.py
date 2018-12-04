@@ -3,6 +3,7 @@ import os
 import ut
 import sys
 import flat
+import "building-lollier"
 import importlib
 from time import sleep
 
@@ -11,9 +12,10 @@ if blend_dir not in sys.path:
    sys.path.append(blend_dir)
 
 importlib.reload(flat)
+importlib.reload(building-lollier)
 
 dir_path = os.path.dirname(os.path.realpath(__file__)).replace("Scripting.blend", "")
-file=open(dir_path + "map.ppm", "r")
+file=open(dir_path + "map-simple.ppm", "r")
 
 # Read ppm
 lines=file.readlines()
@@ -82,7 +84,9 @@ for i in range(0, width):
                 createSimpleCube(x, y, i, j, size, pixels[i][j])
 
             if isRed(pixels[i][j]):
-                flat.createFlat(x, y, size, pixels[i][j])
+                #flat.createFlat(x, y, size, pixels[i][j])
+                building-lollier.createBuilding(x,y,pixels[i][j])
+            sleep(0.1)
 
         if isBlack(pixels[i][j]): 
             print("> Black")
