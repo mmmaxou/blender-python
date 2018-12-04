@@ -86,12 +86,13 @@ for i in range(0, width):
             x -= (total_size_x/2)
             y -= (total_size_y/2)
 
-            if isGreen(pixels[i][j]):
+            if isRed(pixels[i][j]):
+                flat.createBuilding(x, y, size, pixels[i][j])
+            elif isGreen(pixels[i][j]):
+                flat.createParametricalBuilding(x, y, size, pixels[i][j])
+            elif not isWhite(pixels[i][j]):
                 createSimpleCube(x, y, i, j, size, pixels[i][j])
 
-            if isRed(pixels[i][j]):
-                # flat.createFlat(x, y, size, pixels[i][j])
-                flat.createBuilding(x, y, size, pixels[i][j])
 
         if isBlack(pixels[i][j]): 
             print("> Black")

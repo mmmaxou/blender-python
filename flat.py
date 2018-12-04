@@ -211,6 +211,123 @@ def createBuilding(x, y, size, pixel):
     # Deselect
     bpy.ops.object.mode_set(mode='OBJECT')
 
+def createParametricalBuilding(x, y, size, pixel):
+    print("Building creation")
+    
+    # Create a cube
+    bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))    
+
+    # Use a material
+    activeObject = bpy.context.active_object
+    mat = bpy.data.materials.get("ParamBuilding")
+    activeObject.data.materials.append(mat)
+    #bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
+
+    # Modifier le cube
+    bpy.ops.object.mode_set(mode='EDIT')
+    bm = bmesh.from_edit_mesh(bpy.context.object.data)
+    bm.faces.ensure_lookup_table()
+    
+    # Define the modifiers
+    SUBDIVISION = 9
+    
+    # Reduce TOP
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.faces[5].select = True
+    bpy.ops.transform.translate(value = (0, 0, -size))
+    
+    top_vert_indexes = []
+    first_top_vert_index = 0
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bpy.ops.mesh.select_mode(type="VERT")
+    bm.verts.ensure_lookup_table()
+    first_top_vert_index = bm.verts[len(bm.verts)-1].index
+    
+    # Faire des points
+    for i in range(SUBDIVISION+1):
+        for j in range(SUBDIVISION+1):
+            current_i = i/SUBDIVISION
+            current_j = j/SUBDIVISION
+            f_i = current_i - 0.5
+            f_j = current_j - 0.5
+            bpy.ops.mesh.select_all(action="DESELECT")
+            bm.verts.ensure_lookup_table()
+            bm.verts[first_top_vert_index].select = True
+            print(f_i, " | ", f_j)
+            bpy.ops.mesh.duplicate_move(TRANSFORM_OT_translate={"value": (-current_i, -current_j, size*3 - pow(f_i+f_j, 2))})
+    
+    # TOP
+    print("SELECT TOP")
+    for i in range(SUBDIVISION):
+        for j in range(SUBDIVISION):
+            print(i, j)
+            if j == i-1:
+                continue
+            bpy.ops.mesh.select_all(action="DESELECT")
+            bm.verts.ensure_lookup_table()
+            index_1 = (first_top_vert_index+1) + (i*SUBDIVISION) + j
+            index_2 = (first_top_vert_index+1) + (i*SUBDIVISION) + j+1
+            index_3 = (first_top_vert_index+1) + ((i+1)*SUBDIVISION) + j+1
+            index_4 = (first_top_vert_index+1) + ((i+1)*SUBDIVISION) + j+2
+            print(index_1, index_2, index_3, index_4)
+            bm.verts[index_1].select = True
+            bm.verts[index_2].select = True
+            bm.verts[index_3].select = True
+            bm.verts[index_4].select = True
+            bpy.ops.mesh.edge_face_add()
+            
+            
+            
+    # UGLY DEBUG for last row
+    for i in range(SUBDIVISION-1):
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bm.verts.ensure_lookup_table()
+        i1 = i+(first_top_vert_index+1) + SUBDIVISION*SUBDIVISION
+        i2 = i1+1
+        i3 = i2+SUBDIVISION
+        i4 = i3+1
+        bm.verts[i1].select = True
+        bm.verts[i2].select = True
+        bm.verts[i3].select = True
+        bm.verts[i4].select = True
+        bpy.ops.mesh.edge_face_add()
+            
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return    
+    
+
+    # Sides
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.verts.ensure_lookup_table()
+    bm.verts[first_top_vert_index-2].select = True
+    for i in range(first_top_vert_index, first_top_vert_index+SUBDIVISION+2):
+        print(i)
+        bm.verts[i].select = True
+    bpy.ops.mesh.edge_face_add()    
+            
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return    
+    
+    # Run through the pixels
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return
+    for i in range(len(top_vertices_indexes)):
+        bm.verts[top_vertices_indexes[i]].select = True
+        current_param = abs(i%SUBDIVISION - (SUBDIVISION-1) / 2)/SUBDIVISION
+        print(current_param)
+        current_translate = pow(current_param, 2)
+        bpy.ops.transform.translate(value=(0, 0, current_param))
+        bm.verts[top_vertices_indexes[i]].select = False
+        if i == 5 :
+            break
+    
+    
+    
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return
+
+
 def save_selection(bm):
     selected_faces = []
     for f in bm.faces:
