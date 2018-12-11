@@ -71,7 +71,7 @@ def createBuilding(x, y, size, pixel):
     bm.faces[7].select = True
     bm.faces[8].select = True
     bm.faces[9].select = True
-    renfoncementR = random.uniform(0.6,0.8.5);
+    renfoncementR = random.uniform(0.6,0.85);
     bpy.ops.transform.resize(value = (renfoncementR,renfoncementR,renfoncementR))
 
 
