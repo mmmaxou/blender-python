@@ -9,12 +9,7 @@ def showFaceSelected():
 
     for f in bm.faces:
         if f.select:
-            print(f.index)
-
-    # Show the updates in the viewport
-    # and recalculate n-gon tessellation.
-    bmesh.update_edit_mesh(me, True)
-    
+            print(f.index)    
     
 def showEdgeSelected():
     obj = bpy.context.edit_object
@@ -25,11 +20,7 @@ def showEdgeSelected():
     for e in bm.edges:
         if e.select:
             print(e.index)
-
-    # Show the updates in the viewport
-    # and recalculate n-gon tessellation.
-    bmesh.update_edit_mesh(me, True)
-
+    
 def showVertSelected():
     obj = bpy.context.edit_object
     me = obj.data
@@ -39,16 +30,13 @@ def showVertSelected():
     for v in bm.verts:
         if v.select:
             print(v.index)
-
-    # Show the updates in the viewport
-    # and recalculate n-gon tessellation.
-    bmesh.update_edit_mesh(me, True)
     
 def delete_materials():
     for m in bpy.data.materials:
         bpy.data.materials.remove(m)
     
-# showFaceSelected()
+print("__ UTILS __")
+showFaceSelected()
 # showEdgeSelected()
-showVertSelected()
+# showVertSelected()
 # delete_materials()

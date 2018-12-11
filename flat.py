@@ -1,7 +1,7 @@
 import bpy
 import random
 import bmesh
-from math import radians
+import math
 
 def createFlat(x, y, size, pixel):
     # Create a cube
@@ -34,6 +34,7 @@ def createFlat(x, y, size, pixel):
     for i in range(amount):
         bpy.ops.mesh.duplicate_move(MESH_OT_duplicate={"mode": 1}, TRANSFORM_OT_translate={"value": (0, 0, h+padding)})
     bpy.ops.object.mode_set(mode='OBJECT')
+
 
 
 def createBuilding(x, y, size, pixel):
@@ -169,7 +170,7 @@ def createBuilding(x, y, size, pixel):
     
     # Rotate the cube
     bpy.ops.mesh.select_all(action="SELECT")
-    r = radians(random.randrange(3)*90)
+    r = math.radians(random.randrange(3)*90)
     activeObject.rotation_euler = (0,0, r)
 
     last_index = len(bm.faces)-1
@@ -201,7 +202,7 @@ def createBuilding(x, y, size, pixel):
     bpy.ops.mesh.bevel(offset=0.1)
     
     # Rotate once or not
-    r = radians(random.randrange(3)*90)
+    r = math.radians(random.randrange(3)*90)
     activeObject.rotation_euler = (0,0, r)
 
 
@@ -211,56 +212,83 @@ def createBuilding(x, y, size, pixel):
     # Deselect
     bpy.ops.object.mode_set(mode='OBJECT')
 
+
 def createParametricalBuilding(x, y, size, pixel):
     print("Building creation")
-    
+
     # Create a cube
-    bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))    
+    bpy.ops.mesh.primitive_cube_add(radius=size, location=(x, y, 0))
 
     # Use a material
     activeObject = bpy.context.active_object
     mat = bpy.data.materials.get("ParamBuilding")
     activeObject.data.materials.append(mat)
-    #bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
+    # bpy.context.object.active_material.diffuse_color = [k / 255 for k in pixel]
 
     # Modifier le cube
     bpy.ops.object.mode_set(mode='EDIT')
     bm = bmesh.from_edit_mesh(bpy.context.object.data)
     bm.faces.ensure_lookup_table()
-    
+
     # Define the modifiers
     SUBDIVISION = 9
-    
+
     # Reduce TOP
     bpy.ops.mesh.select_all(action="DESELECT")
     bm.faces[5].select = True
-    bpy.ops.transform.translate(value = (0, 0, -size))
-    
-    top_vert_indexes = []
+    bpy.ops.transform.translate(value=(0, 0, -size))
+
     first_top_vert_index = 0
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.mesh.select_mode(type="VERT")
     bm.verts.ensure_lookup_table()
     first_top_vert_index = bm.verts[len(bm.verts)-1].index
     
+    
+    # Select FORMULA
+    r = random.randint(0, 6)
+    
+
     # Faire des points
     for i in range(SUBDIVISION+1):
         for j in range(SUBDIVISION+1):
             current_i = i/SUBDIVISION
             current_j = j/SUBDIVISION
-            f_i = current_i - 0.5
-            f_j = current_j - 0.5
+            f_i = (current_i - 0.5)
+            f_j = (current_j - 0.5)
             bpy.ops.mesh.select_all(action="DESELECT")
             bm.verts.ensure_lookup_table()
+
+            formula = size*3
+            if r == 0:
+                formula += pow(f_i+f_j, 2)
+            elif r == 1:
+                formula -= pow(f_i+f_j, 2)
+            elif r == 2:
+                formula += f_i + f_j
+            elif r == 3:
+                formula += math.cos(f_i * f_j / SUBDIVISION * 90)
+            elif r == 4:
+                formula += math.sin(f_i * f_j / SUBDIVISION * 30)
+            elif r == 5:
+                coeff=1.5
+                x = coeff*f_i
+                y = coeff*f_j
+                formula -= (x**2 + y**2)
+            elif r == 6:
+                coeff=1.5
+                x = coeff*f_i
+                y = coeff*f_j
+                formula += (x**2 + y**2) * math.cos(x*4)
+
             bm.verts[first_top_vert_index].select = True
-            print(f_i, " | ", f_j)
-            bpy.ops.mesh.duplicate_move(TRANSFORM_OT_translate={"value": (-current_i, -current_j, size*3 - pow(f_i+f_j, 2))})
-    
+            bpy.ops.mesh.duplicate_move(TRANSFORM_OT_translate={"value": (-current_i, -current_j, formula)})
+
     # TOP
     print("SELECT TOP")
     for i in range(SUBDIVISION):
         for j in range(SUBDIVISION):
-            print(i, j)
+            # print(i, j)
             if j == i-1:
                 continue
             bpy.ops.mesh.select_all(action="DESELECT")
@@ -269,15 +297,13 @@ def createParametricalBuilding(x, y, size, pixel):
             index_2 = (first_top_vert_index+1) + (i*SUBDIVISION) + j+1
             index_3 = (first_top_vert_index+1) + ((i+1)*SUBDIVISION) + j+1
             index_4 = (first_top_vert_index+1) + ((i+1)*SUBDIVISION) + j+2
-            print(index_1, index_2, index_3, index_4)
+            # print(index_1, index_2, index_3, index_4)
             bm.verts[index_1].select = True
             bm.verts[index_2].select = True
             bm.verts[index_3].select = True
             bm.verts[index_4].select = True
             bpy.ops.mesh.edge_face_add()
-            
-            
-            
+
     # UGLY DEBUG for last row
     for i in range(SUBDIVISION-1):
         bpy.ops.mesh.select_all(action="DESELECT")
@@ -291,39 +317,55 @@ def createParametricalBuilding(x, y, size, pixel):
         bm.verts[i3].select = True
         bm.verts[i4].select = True
         bpy.ops.mesh.edge_face_add()
-            
-    bpy.ops.object.mode_set(mode='OBJECT')
-    return    
-    
 
-    # Sides
+    # Side 1
     bpy.ops.mesh.select_all(action="DESELECT")
     bm.verts.ensure_lookup_table()
     bm.verts[first_top_vert_index-2].select = True
     for i in range(first_top_vert_index, first_top_vert_index+SUBDIVISION+2):
-        print(i)
         bm.verts[i].select = True
-    bpy.ops.mesh.edge_face_add()    
-            
-    bpy.ops.object.mode_set(mode='OBJECT')
-    return    
+    bpy.ops.mesh.edge_face_add()
+
+    # Side 2
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.verts.ensure_lookup_table()
+    bm.verts[3].select = True
+    bm.verts[first_top_vert_index].select = True
+    for i in range(SUBDIVISION+1):
+        bm.verts[(i*10) + (first_top_vert_index+1)].select = True
+    bpy.ops.mesh.edge_face_add
+
+    # Side 3
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.verts.ensure_lookup_table()
+    bm.verts[1].select = True
+    bm.verts[3].select = True
+    for i in range(SUBDIVISION*10 + first_top_vert_index+1, SUBDIVISION*10 + first_top_vert_index+1 + 10):
+        bm.verts[i].select = True
+    bpy.ops.mesh.edge_face_add()
+
+    # Side 4
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bm.verts.ensure_lookup_table()
+    bm.verts[1].select = True
+    bm.verts[5].select = True
+    for i in range(1, SUBDIVISION+2):
+        bm.verts[i*10 + first_top_vert_index].select = True
+    bpy.ops.mesh.edge_face_add()
     
-    # Run through the pixels
-    bpy.ops.object.mode_set(mode='OBJECT')
-    return
-    for i in range(len(top_vertices_indexes)):
-        bm.verts[top_vertices_indexes[i]].select = True
-        current_param = abs(i%SUBDIVISION - (SUBDIVISION-1) / 2)/SUBDIVISION
-        print(current_param)
-        current_translate = pow(current_param, 2)
-        bpy.ops.transform.translate(value=(0, 0, current_param))
-        bm.verts[top_vertices_indexes[i]].select = False
-        if i == 5 :
-            break
+    # Make smooth faces
+    bpy.ops.mesh.select_mode(type="FACE")
+    bm.faces.ensure_lookup_table()
+    for f in bm.faces:
+        f.smooth = True
+
+    bpy.ops.mesh.select_mode(type="VERT")
     
-    
-    
-    
+    # Rotate once or not
+    r = math.radians(random.randrange(3)*90)
+    activeObject.rotation_euler = (0,0, r)
+
+    bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.object.mode_set(mode='OBJECT')
     return
 
@@ -334,11 +376,11 @@ def save_selection(bm):
         if f.select:
             selected_faces.append(f.index)
     return selected_faces
-    
-# 1 -> 
+
+
+# 1 ->
 def use_selection(bm, selected_faces):
     bpy.ops.mesh.select_all(action="DESELECT")
     bm.faces.ensure_lookup_table()
     for i in selected_faces:
         bm.faces[i].select = True
-    
